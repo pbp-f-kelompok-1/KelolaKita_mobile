@@ -16,7 +16,7 @@ KelolaKita hadir untuk membantu masyarakat mengelola barang dan sampah dengan le
 
 ## Menjalankan Platform di Localhost
 
-Ikuti langkah berikut untuk menjalankan website KelolaKita secara lokal:
+Ikuti langkah berikut untuk menjalankan aplikasi KelolaKita secara lokal:
 
 1. Pastikan Flutter sudah terpasang, lalu buka terminal pada folder utama proyek.
 
@@ -31,7 +31,7 @@ Ikuti langkah berikut untuk menjalankan website KelolaKita secara lokal:
 3. Jalankan aplikasi di Google Chrome dari root folder proyek:
 
 	```bash
-	flutter run -d chrome
+	flutter run -d chrome --dart-define=API_BASE_URL=http://127.0.0.1:8000
 	```
 
 ### Menjalankan di Android Emulator atau Perangkat Fisik (Opsional)
@@ -315,25 +315,25 @@ Platform ini diharapkan dapat membantu masyarakat membangun kebiasaan pengelolaa
 
 | Name | Link |
 |---|---|
-| Figma Design |  |
+| Figma Design | [Edukasi Mobile](https://www.figma.com/design/E6eEv496fcyYML29RvCyhH?node-id=230-759) |
 | Deployment |  |
 
 ## Integrasi Data Aplikasi Mobile dan Website (PWS)
 
-Pada Proyek Tengah Semester ini, aplikasi mobile KelolaKita dan website KelolaKita yang di-hosting pada PWS terintegrasi melalui **Django REST Framework (DRF)** sebagai lapisan web service. Kedua platform menggunakan endpoint REST API yang sama sehingga data yang diakses maupun diubah dari aplikasi mobile atau website disimpan pada sumber data yang sama di sisi server PWS.
+Implementasi Checkpoint 1 untuk **Penyaluran, Komunitas & Edukasi** (Glenn Josia Devano) membaca JSON dari Django REST Framework. Website Django dan API menggunakan database yang sama. Buka **Edukasi** pada navigasi bawah untuk melihat artikel, agenda, dan catatan penyaluran. Pilih artikel untuk membaca isinya.
 
-Alur integrasi data secara umum berlangsung sebagai berikut:
+| Endpoint publik | Data |
+|---|---|
+| `GET /api/education/articles/` | Artikel terbit |
+| `GET /api/education/articles/<slug>/` | Isi artikel terbit |
+| `GET /api/education/events/` | Agenda terbit yang akan datang |
+| `GET /api/education/distributions/` | Catatan penyaluran publik yang sudah selesai |
 
-1. Pengguna melakukan suatu aksi pada aplikasi Flutter, misalnya login, melihat daftar produk atau edukasi, mengirim data pemeriksaan barang, atau memperbarui data profil.
-2. Aplikasi mobile membentuk permintaan HTTP dengan metode `GET`, `POST`, `PUT/PATCH`, atau `DELETE` ke endpoint API yang tersedia pada aplikasi Django di PWS.
-3. Permintaan dikirim dalam format JSON dan, ketika dibutuhkan, dilengkapi autentikasi serta data payload sesuai kontrak API. Respons dari server juga dikembalikan dalam format JSON.
-4. DRF menerima permintaan melalui `URL routing`, menjalankan autentikasi dan otorisasi, memvalidasi data melalui serializer, serta meneruskan proses yang sah ke Django view atau viewset.
-5. Django mengolah permintaan dan berinteraksi dengan database menggunakan Django ORM. Hasil operasi, seperti daftar data, data objek, pesan sukses, atau pesan error, dikirim kembali oleh DRF dalam bentuk respons HTTP beserta status code yang sesuai.
-6. Aplikasi Flutter membaca respons JSON tersebut, memperbarui model atau state aplikasi, dan menampilkan hasilnya pada antarmuka pengguna.
+Endpoint daftar mengembalikan `count`, `next`, `previous`, dan `results`. Halaman Edukasi Checkpoint 1 menampilkan halaman pertama (maksimal 20 entri per daftar).
 
-Jika pengguna menambahkan atau mengubah data melalui aplikasi mobile, perubahan tersebut tersimpan di database PWS lalu dapat dibaca kembali oleh website karena website juga menggunakan API Django atau data server yang sama. Sebaliknya, perubahan yang dilakukan melalui website ikut tersedia pada aplikasi mobile setelah permintaan API berikutnya berhasil mengambil data terbaru. Dengan demikian, mobile dan website tidak memiliki basis data lokal terpisah sebagai sumber kebenaran utama.
+Untuk demo lokal, jalankan Django dari [repo KelolaKita](https://github.com/pbp-f-kelompok-1/KelolaKita) yang sudah memuat perubahan Checkpoint 1. Pasang dependensi dari `requirements.txt`, siapkan database pengembangan, lalu jalankan `python manage.py runserver`. Gunakan `API_BASE_URL=http://127.0.0.1:8000` saat menjalankan Flutter Web. Untuk Android debug, jalankan `adb reverse tcp:8000 tcp:8000` dan gunakan URL lokal yang sama pada `flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000`.
 
-Implementasi integrasi perlu memperhatikan konsistensi format JSON, status HTTP, penanganan error dan token autentikasi, konektivitas internet, konfigurasi CORS/CSRF, serta konfigurasi URL PWS. Pemrosesan data sensitif atau operasional harus tetap terlindungi melalui autentikasi, izin pengguna, dan validasi baik di serializer maupun sisi server.
+Saat endpoint sudah tersedia di PWS, isi `API_BASE_URL` dengan URL HTTPS PWS pada `--dart-define`. Implementasi modul lain dan pengelolaan konten dari Flutter berada di luar Checkpoint 1 Edukasi.
 
 ## AI Disclosure
 
@@ -391,4 +391,4 @@ AI tidak diberi kewenangan untuk menentukan keputusan produk atau melakukan merg
 
 ---
 
-KelolaKita dikembangkan sebagai Proyek Tengah Semester mata kuliah Pemrograman Berbasis Platform, Fakultas Ilmu Komputer, Universitas Indonesia.
+KelolaKita Mobile dikembangkan sebagai Proyek Akhir Semester mata kuliah Pemrograman Berbasis Platform, Fakultas Ilmu Komputer, Universitas Indonesia.
