@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'education_page.dart';
+import 'submission_page.dart';
 
 void main() => runApp(const KelolaKitaApp());
 
@@ -58,9 +59,11 @@ class _AppShellState extends State<_AppShell> {
   @override
   Widget build(BuildContext context) => Scaffold(
     body: SafeArea(
-      child: selected == 0
-          ? const Center(child: Text('KelolaKita'))
-          : const EducationPage(),
+      child: switch (selected) {
+        0 => const Center(child: Text('KelolaKita')),
+        1 => const SubmissionPage(),
+        _ => const EducationPage(),
+      },
     ),
     bottomNavigationBar: NavigationBar(
       selectedIndex: selected,
@@ -70,6 +73,7 @@ class _AppShellState extends State<_AppShell> {
           icon: Icon(Icons.home_outlined),
           label: 'Beranda',
         ),
+        NavigationDestination(icon: _AddNavigationIcon(), label: 'Ajukan'),
         NavigationDestination(
           icon: Icon(Icons.menu_book_outlined),
           label: 'Edukasi',
@@ -77,4 +81,22 @@ class _AppShellState extends State<_AppShell> {
       ],
     ),
   );
+}
+
+class _AddNavigationIcon extends StatelessWidget {
+  const _AddNavigationIcon();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: const BoxDecoration(
+        color: Color(0xFFFBFD74),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: const Icon(Icons.add, color: Color(0xFF19270F), size: 24),
+    );
+  }
 }
