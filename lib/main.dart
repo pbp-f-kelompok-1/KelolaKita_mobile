@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'education_page.dart';
+import 'features/schedule/schedule_page.dart';
 import 'submission_page.dart';
 
 void main() => runApp(const KelolaKitaApp());
@@ -62,6 +63,7 @@ class _AppShellState extends State<_AppShell> {
       child: switch (selected) {
         0 => const Center(child: Text('KelolaKita')),
         1 => const SubmissionPage(),
+        2 => const SchedulePage(),
         _ => const EducationPage(),
       },
     ),
@@ -74,6 +76,10 @@ class _AppShellState extends State<_AppShell> {
           label: 'Beranda',
         ),
         NavigationDestination(icon: _AddNavigationIcon(), label: 'Ajukan'),
+        NavigationDestination(
+          icon: Icon(Icons.event_outlined),
+          label: 'Jadwal',
+        ),
         NavigationDestination(
           icon: Icon(Icons.menu_book_outlined),
           label: 'Edukasi',
