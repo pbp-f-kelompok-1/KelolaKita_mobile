@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 class SubmissionPage extends StatelessWidget {
   const SubmissionPage({super.key});
 
+  static const String endpoint = '/api/v1/pengajuan/';
+
   // Warna semantik status sesuai desain SVG
   static const Color _statusPendingColor = Color(0xFFE8C55B);
   static const Color _statusAcceptedColor = Color(0xFF6DD47E);

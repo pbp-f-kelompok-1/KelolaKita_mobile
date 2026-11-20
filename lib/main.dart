@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'education_page.dart';
+import 'features/submission/submission_page.dart';
 import 'features/schedule/schedule_page.dart';
-import 'submission_page.dart';
 
 void main() => runApp(const KelolaKitaApp());
 
