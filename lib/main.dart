@@ -1,13 +1,21 @@
 import 'package:flutter/material.dart';
 
 import 'education_page.dart';
+import 'features/account/account_api.dart';
+import 'features/account/account_controller.dart';
+import 'features/account/account_page.dart';
 import 'features/schedule/schedule_page.dart';
 import 'submission_page.dart';
 
-void main() => runApp(const KelolaKitaApp());
+void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+  runApp(const KelolaKitaApp());
+}
 
 class KelolaKitaApp extends StatelessWidget {
-  const KelolaKitaApp({super.key});
+  const KelolaKitaApp({super.key, this.accountController});
+
+  final AccountController? accountController;
 
   @override
   Widget build(BuildContext context) {
@@ -42,13 +50,15 @@ class KelolaKitaApp extends StatelessWidget {
           backgroundColor: Color(0xFF101713),
         ),
       ),
-      home: const _AppShell(),
+      home: _AppShell(accountController: accountController),
     );
   }
 }
 
 class _AppShell extends StatefulWidget {
-  const _AppShell();
+  const _AppShell({this.accountController});
+
+  final AccountController? accountController;
 
   @override
   State<_AppShell> createState() => _AppShellState();
@@ -56,6 +66,20 @@ class _AppShell extends StatefulWidget {
 
 class _AppShellState extends State<_AppShell> {
   int selected = 0;
+  late final AccountController _account;
+
+  @override
+  void initState() {
+    super.initState();
+    _account = widget.accountController ?? AccountController(AccountApi());
+    _account.initialize();
+  }
+
+  @override
+  void dispose() {
+    if (widget.accountController == null) _account.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) => Scaffold(
@@ -64,7 +88,8 @@ class _AppShellState extends State<_AppShell> {
         0 => const Center(child: Text('KelolaKita')),
         1 => const SubmissionPage(),
         2 => const SchedulePage(),
-        _ => const EducationPage(),
+        3 => const EducationPage(),
+        _ => AccountPage(controller: _account),
       },
     ),
     bottomNavigationBar: NavigationBar(
@@ -83,6 +108,10 @@ class _AppShellState extends State<_AppShell> {
         NavigationDestination(
           icon: Icon(Icons.menu_book_outlined),
           label: 'Edukasi',
+        ),
+        NavigationDestination(
+          icon: Icon(Icons.person_outline),
+          label: 'Profil',
         ),
       ],
     ),

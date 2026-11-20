@@ -44,6 +44,111 @@ flutter run
 
 ---
 
+## Authentication dan Profile (Flutter)
+
+Branch pengerjaan: `module/authentication-and-profile`. Buka tab **Profil** untuk
+masuk, membuat akun, melihat/mengedit profil, memuat ulang data, dan keluar.
+Tab Beranda, Ajukan, Jadwal, dan Edukasi tetap tersedia. Tampilan memakai tema
+gelap hijau, aksen kuning, dan font Plus Jakarta Sans aplikasi.
+
+### Kontrak backend yang benar-benar tersedia
+
+Repo Django lokal `../KelolaKita` saat implementasi menyediakan endpoint
+berbasis **session cookie + CSRF**, bukan API token/JWT. Karena itu adapter
+`lib/features/account/account_api.dart` menggunakan kontrak berikut tanpa
+menambah atau mengubah backend:
+
+| Endpoint | Kontrak yang digunakan |
+|---|---|
+| `GET /accounts/login/` | Form HTML dan hidden `csrfmiddlewaretoken` |
+| `POST /accounts/login/` | Form `username`, `password`, `remember_me=on`; sukses redirect |
+| `GET /accounts/register/` | Form HTML dan token CSRF |
+| `POST /accounts/register/` | `username`, `first_name`, `last_name`, `email`, `password1`, `password2`; sukses membuat sesi dan redirect |
+| `GET /accounts/profile/` | HTML profil dan nilai input form; login diwajibkan |
+| `POST /accounts/profile/` | Enam field profil, header `X-Requested-With: XMLHttpRequest`, token CSRF; JSON `success`, `errors`, `non_field_errors` |
+| `POST /accounts/logout/` | Token CSRF; menghapus sesi server dan redirect |
+
+Field profil yang dapat diedit: `first_name`, `last_name`, `email`,
+`phone_number`, `address`, `avatar_url`. Username, peran, dan poin hanya dibaca.
+Validasi Django tetap menjadi sumber kebenaran; pesannya ditampilkan di Flutter.
+Adapter pembacaan HTML bergantung pada `data-profile-form`,
+`data-profile-full-name`, field form, dan label ringkasan template Django saat
+ini. Jika backend kelak menyediakan API JSON khusus akun, ganti adapter ini;
+halaman Flutter dan controller tidak perlu bergantung pada template Django.
+
+Cookie sesi native disimpan memakai `flutter_secure_storage`, dengan key
+terpisah per origin backend. Kata sandi dan data profil tidak dipersistenkan.
+Sesi divalidasi lagi ke Django saat aplikasi dibuka, sesi kedaluwarsa dibersihkan,
+dan gangguan jaringan tetap menyimpan sesi agar bisa dicoba ulang. Login meminta
+masa berlaku 14 hari sesuai `LoginForm` backend; registrasi mengikuti masa sesi
+default Django. Di web, cookie HttpOnly ditangani browser; penyimpanan lokal hanya
+menandai bahwa sesi perlu dipulihkan. Keluar berhasil setelah sesi server
+diakhiri dan penyimpanan lokal dihapus.
+
+### Menjalankan akun pada Android
+
+Jalankan Django pada port 8000 menggunakan environment backend yang sudah ada.
+Lalu dari **root repo mobile**:
+
+```powershell
+flutter pub get
+adb reverse tcp:8000 tcp:8000
+flutter run -d <id-perangkat-android> --dart-define=API_BASE_URL=http://127.0.0.1:8000
+```
+
+Alternatif untuk emulator Android tanpa `adb reverse`: gunakan
+`--dart-define=API_BASE_URL=http://10.0.2.2:8000`. Untuk server deployment gunakan
+URL HTTPS. Akses HTTP lokal hanya diizinkan oleh manifest debug yang sudah ada.
+
+### Menjalankan akun pada Chrome tanpa mengubah Django
+
+Server Django lokal saat ini belum menambahkan CORS untuk cookie lintas origin.
+Gunakan proxy pengembangan yang disertakan agar Flutter Web dan akun Django
+diakses dari origin yang sama, dengan pemeriksaan CSRF tetap aktif:
+
+```powershell
+# Terminal 1: jalankan Django di repo backend pada port 8000.
+# Terminal 2, dari root repo mobile:
+flutter build web --no-pub --dart-define=API_BASE_URL=http://127.0.0.1:8080
+python tool/serve_local_web.py --django http://127.0.0.1:8000
+```
+
+Buka [Flutter lokal](http://127.0.0.1:8080), lalu tab **Profil**. Setelah kode
+Flutter diubah, ulangi build. Proxy hanya untuk pengembangan lokal dan meneruskan
+`/accounts/` serta `/api/` ke Django. Untuk deployment, gunakan reverse proxy
+yang sama origin atau konfigurasi CORS credentials, trusted CSRF origin, dan
+cookie backend yang sesuai. Jangan menonaktifkan CSRF atau keamanan browser.
+
+Jika Flutter melaporkan `Building with plugins requires symlink support` di
+Windows, aktifkan **Developer Mode** pada Windows Settings, lalu ulangi
+`flutter pub get`. Setelah dependensi sudah terunduh, pemeriksaan dan build web
+dapat dijalankan dengan `--no-pub`. Secure storage pada web membutuhkan localhost
+atau HTTPS. Dukungan Android minimal mengikuti Flutter SDK (plugin membutuhkan
+API 23+); konfigurasi Keychain iOS dan izin jaringan macOS disertakan.
+
+### Pengujian modul akun
+
+```powershell
+flutter analyze --no-pub
+flutter test --no-pub
+```
+
+Tes mencakup kontrak form, CSRF dan rotasi cookie, pemulihan sesi pada instance
+baru, validasi backend, edit profil, logout, input tidak valid, layar kecil,
+serta regresi navigasi Jadwal/Edukasi. Tes integrasi backend bersifat opt-in dan
+memakai **database di memori**, tanpa membuka `db.sqlite3` backend:
+
+```powershell
+# Terminal 1, dari root repo mobile; gunakan Python environment backend:
+..\KelolaKita\env\Scripts\python.exe -B tool/account_test_server.py --backend ..\KelolaKita
+# Terminal 2:
+flutter test --no-pub --dart-define=ACCOUNT_TEST_URL=http://127.0.0.1:8765
+```
+
+Server uji akan memuat view/form/template Django asli dan membuat database baru
+di memori. Hentikan server dengan Ctrl+C setelah pengujian. Lokasi virtualenv
+backend dapat disesuaikan dengan mesin masing-masing.
+
 ## Anggota Kelompok
 
 | No. | Nama | NPM |
